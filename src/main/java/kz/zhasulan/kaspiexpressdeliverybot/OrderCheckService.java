@@ -15,7 +15,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.MonthDay;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,69 +33,68 @@ public class OrderCheckService {
     private AbilityBot bot;
 
     public void check() throws IOException, InterruptedException, URISyntaxException {
-        Map<String, String> formData = new HashMap<>();
-        formData.put("Login", "ZSharipov_3");
-        formData.put("Password", "Whatthefuck1");
-        formData.put("IsRemember", "false");
-        formData.put("x", "48");
-        formData.put("y", "6");
 
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean needToSend = false;
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request1 = HttpRequest.newBuilder()
                 .uri(URI.create("http://fo.sulpak.kz:8089/KaspiExpressOrders/OrdersForPrepare?shopId=4860"))
                 .header("Content-Type", "text/html")
-                .header("Cookie",Cookie.session)
-                .header("Cookie",Cookie.info)
+                .header("Cookie", Cookie.session)
+                .header("Cookie", Cookie.info)
                 .GET()
                 .build();
 
         HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
         if (response1.body().contains("<button class=\"btn btn-danger btn-sm\" onclick=\"return openPrepareForm")) {
-            if (userRepository.findAll().iterator().hasNext()) {
-
-                SendMessage sendMessage = new SendMessage();
-                sendMessage.setChatId(userRepository.findAll().iterator().next().getChatId());
-                sendMessage.setText("новый заказ");
-                try {
-                    bot.execute(sendMessage);
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            stringBuilder.append("Каспи экспресс доставка\n");
+            needToSend = true;
         }
 
+        String dayFrom = new SimpleDateFormat("dd.MM.yyyy").format(Calendar.getInstance().getTime());
+        String dayTo = new SimpleDateFormat(".MM.yyyy").format(Calendar.getInstance().getTime());
+        StringBuilder duration = new StringBuilder();
+        duration.append("ShopId=4860&From=");
+        duration.append(dayFrom);
+        duration.append("&To=");
+        duration.append(MonthDay.now().getDayOfMonth()+1);
+        duration.append(dayTo);
 
-    }
+        HttpRequest request2 = HttpRequest.newBuilder()
+                .uri(URI.create("http://fo.sulpak.kz:8089/Reports/SalesFromNeighboringShop"))
+                .header("Content-Type", "text/html")
+                .header("Cookie", Cookie.session)
+                .header("Cookie", Cookie.info)
+                .POST(HttpRequest.BodyPublishers.ofString(duration.toString()))
+                .build();
 
-    public static class ParameterStringBuilder {
-        public static String getParamsString(Map<String, String> params)
-                throws UnsupportedEncodingException {
-            StringBuilder result = new StringBuilder();
-
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                result.append("=");
-                result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                result.append("&");
-            }
-
-            String resultString = result.toString();
-            return resultString.length() > 0
-                    ? resultString.substring(0, resultString.length() - 1)
-                    : resultString;
+        HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
+        if (response2.body().contains("Продажа с самовывозом")) {
+            stringBuilder.append("Продажа с самовывозом\n");
+            needToSend = true;
         }
-    }
-
-    private static String getFormDataAsString(Map<String, String> formData) {
-        StringBuilder formBodyBuilder = new StringBuilder();
-        for (Map.Entry<String, String> singleEntry : formData.entrySet()) {
-            if (formBodyBuilder.length() > 0) {
-                formBodyBuilder.append("&");
-            }
-            formBodyBuilder.append(URLEncoder.encode(singleEntry.getKey(), StandardCharsets.UTF_8));
-            formBodyBuilder.append("=");
-            formBodyBuilder.append(URLEncoder.encode(singleEntry.getValue(), StandardCharsets.UTF_8));
+        if (response2.body().contains("Продажа с доставкой")) {
+            stringBuilder.append("Продажа с самовывозом\n");
+            needToSend = true;
         }
-        return formBodyBuilder.toString();
+        if (response2.body().contains("Продажа с ")) {
+            stringBuilder.append("Продажа с самовывозом\n");
+            needToSend = true;
+        }
+        if(needToSend){
+
+
+        while (userRepository.findAll().iterator().hasNext()) {
+
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(userRepository.findAll().iterator().next().getChatId());
+            sendMessage.setText(stringBuilder.toString());
+            try {
+                bot.execute(sendMessage);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+        }}
+
     }
 }
