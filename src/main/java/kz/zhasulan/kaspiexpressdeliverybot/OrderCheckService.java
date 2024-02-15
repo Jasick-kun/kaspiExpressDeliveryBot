@@ -18,10 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.MonthDay;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class OrderCheckService {
@@ -83,11 +80,11 @@ public class OrderCheckService {
         }
         if(needToSend){
 
-
-        while (userRepository.findAll().iterator().hasNext()) {
+            Iterator<UserEntity> iterator= userRepository.findAll().iterator();
+              while (iterator.hasNext()) {
 
             SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(userRepository.findAll().iterator().next().getChatId());
+            sendMessage.setChatId(iterator.next().getChatId());
             sendMessage.setText(stringBuilder.toString());
             try {
                 bot.execute(sendMessage);
