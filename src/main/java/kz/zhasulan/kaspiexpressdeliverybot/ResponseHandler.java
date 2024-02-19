@@ -34,8 +34,8 @@ public class ResponseHandler {
 
         switch (message.getText()) {
             case "/start" -> replyToStart(chatId);
-            case "Включить оповещения" -> startNotifications(chatId, message);
-            case "Отключить оповещения" -> stopNotifications(chatId, message);
+            case "/on" -> startNotifications(chatId, message);
+            case "/off" -> stopNotifications(chatId, message);
             default -> unexpectedMessage(chatId);
         }
     }
@@ -46,13 +46,21 @@ public class ResponseHandler {
         sender.execute(sendMessage);
     }
     private void startNotifications(Long chatId, Message message){
-        UserEntity user= new UserEntity();
-        user.setChatId(chatId);
-        userRepository.save(user);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Оповещения включены");
+        if(userRepository.findFirstByChatId(message.getChatId()) == null){
+            UserEntity user= new UserEntity();
+            user.setChatId(chatId);
+            userRepository.save(user);
+
+            sendMessage.setText("Оповещения включены");
+
+        }
+        else {
+            sendMessage.setText("Оповещения уже включены");
+        }
         sender.execute(sendMessage);
+
 
     }
     private void stopNotifications(Long chatId, Message message){

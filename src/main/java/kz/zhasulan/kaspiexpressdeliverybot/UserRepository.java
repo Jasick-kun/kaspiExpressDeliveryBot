@@ -15,4 +15,9 @@ public interface UserRepository extends CrudRepository<UserEntity,Integer> {
     @Transactional
     @Query(nativeQuery = true,value = "delete from USERS where CHAT_ID=:chatId")
     void deleteByChatId(@Param("chatId") Long chatId);
+
+
+    @Transactional
+    @Query(nativeQuery = true,value = "select * from USERS where CHAT_ID=:chatId")
+    UserEntity findFirstByChatId(Long chatId);
 }

@@ -51,18 +51,19 @@ public class OrderCheckService {
         String dayFrom = new SimpleDateFormat("dd.MM.yyyy").format(Calendar.getInstance().getTime());
         String dayTo = new SimpleDateFormat(".MM.yyyy").format(Calendar.getInstance().getTime());
         StringBuilder duration = new StringBuilder();
-        duration.append("ShopId=4860&From=");
-        duration.append(dayFrom);
-        duration.append("&To=");
         duration.append(MonthDay.now().getDayOfMonth()+1);
         duration.append(dayTo);
 
+        Map<String, String> formData = new HashMap<>();
+        formData.put("ShopId", "4860");
+        formData.put("From", dayFrom);
+        formData.put("To", duration.toString());
         HttpRequest request2 = HttpRequest.newBuilder()
                 .uri(URI.create("http://fo.sulpak.kz:8089/Reports/SalesFromNeighboringShop"))
-                .header("Content-Type", "text/html")
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Cookie", Cookie.session)
                 .header("Cookie", Cookie.info)
-                .POST(HttpRequest.BodyPublishers.ofString(duration.toString()))
+                .POST(HttpRequest.BodyPublishers.ofString(getFormDataAsString(formData)))
                 .build();
 
         HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
@@ -71,11 +72,11 @@ public class OrderCheckService {
             needToSend = true;
         }
         if (response2.body().contains("Продажа с доставкой")) {
-            stringBuilder.append("Продажа с самовывозом\n");
+            stringBuilder.append("Продажа с доставкой\n");
             needToSend = true;
         }
-        if (response2.body().contains("Продажа с ")) {
-            stringBuilder.append("Продажа с самовывозом\n");
+        if (response2.body().contains("Яндекс Доставка")) {
+            stringBuilder.append("Яндекс Доставка\n");
             needToSend = true;
         }
         if(needToSend){
@@ -85,6 +86,7 @@ public class OrderCheckService {
 
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(iterator.next().getChatId());
+
             sendMessage.setText(stringBuilder.toString());
             try {
                 bot.execute(sendMessage);
@@ -93,5 +95,17 @@ public class OrderCheckService {
             }
         }}
 
+    }
+    private static String getFormDataAsString(Map<String, String> formData) {
+        StringBuilder formBodyBuilder = new StringBuilder();
+        for (Map.Entry<String, String> singleEntry : formData.entrySet()) {
+            if (formBodyBuilder.length() > 0) {
+                formBodyBuilder.append("&");
+            }
+            formBodyBuilder.append(URLEncoder.encode(singleEntry.getKey(), StandardCharsets.UTF_8));
+            formBodyBuilder.append("=");
+            formBodyBuilder.append(URLEncoder.encode(singleEntry.getValue(), StandardCharsets.UTF_8));
+        }
+        return formBodyBuilder.toString();
     }
 }

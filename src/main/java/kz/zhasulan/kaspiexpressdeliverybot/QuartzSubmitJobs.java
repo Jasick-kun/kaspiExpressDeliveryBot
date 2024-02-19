@@ -19,7 +19,7 @@ public class QuartzSubmitJobs {
 
     @Bean(name = "orderCheckTrigger")
     public SimpleTriggerFactoryBean triggerMemberStats(@Qualifier("orderCheck") JobDetail jobDetail) {
-        return QuartzConfig.createTrigger(jobDetail, 300000, "Order check Trigger");
+        return QuartzConfig.createTrigger(jobDetail, 180000, "Order check Trigger");
     }
 }
 
