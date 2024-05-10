@@ -19,5 +19,5 @@ public interface UserRepository extends CrudRepository<UserEntity,Integer> {
 
     @Transactional
     @Query(nativeQuery = true,value = "select * from USERS where CHAT_ID=:chatId")
-    UserEntity findFirstByChatId(Long chatId);
+UserEntity findFirstByChatId(Long chatId);
 }

@@ -70,11 +70,11 @@ public class OrderCheckService {
         if (response2.body().contains("Продажа с самовывозом")) {
             stringBuilder.append("Продажа с самовывозом\n");
             needToSend = true;
-        }
+    }
         if (response2.body().contains("Продажа с доставкой")) {
             stringBuilder.append("Продажа с доставкой\n");
             needToSend = true;
-        }
+    }
         if (response2.body().contains("Яндекс Доставка")) {
             stringBuilder.append("Яндекс Доставка\n");
             needToSend = true;

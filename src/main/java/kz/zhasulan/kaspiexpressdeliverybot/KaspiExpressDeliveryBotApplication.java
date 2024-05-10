@@ -28,7 +28,7 @@ public class KaspiExpressDeliveryBotApplication {
 
 		Map<String, String> formData = new HashMap<>();
 		formData.put("Login", "ZSharipov_3");
-		formData.put("Password", "Whatthefuck1");
+		formData.put("Password", "Qwerty123!");
 		formData.put("IsRemember", "false");
 		formData.put("x", "48");
 		formData.put("y", "6");
@@ -57,7 +57,7 @@ public class KaspiExpressDeliveryBotApplication {
 		StringBuilder formBodyBuilder = new StringBuilder();
 		for (Map.Entry<String, String> singleEntry : formData.entrySet()) {
 			if (formBodyBuilder.length() > 0) {
-				formBodyBuilder.append("&");
+				formBodyBuilder.append("&");;
 			}
 			formBodyBuilder.append(URLEncoder.encode(singleEntry.getKey(), StandardCharsets.UTF_8));
 			formBodyBuilder.append("=");
